@@ -47,6 +47,22 @@ class mongodb::config(
     content => template("mongodb/${mongodb::params::mongo_config}.erb"),
   }
   
+  exec { 'mongodb-delock' :
+    command   => "rm /var/lib/mongodb/mongod.lock",
+    path      => "/usr/bin:/usr/sbin:/bin:/sbin",
+    logoutput => true,
+    require   => File["/etc/${mongodb::params::mongo_config}"],
+    returns   => [0, 1],
+  }
+
+  exec { 'mongodb-pkill' :
+    command   => "pkill ${mongodb::params::mongo_service}",
+    path      => "/usr/bin:/usr/sbin:/bin:/sbin",
+    logoutput => true,
+    require   => File["/etc/${mongodb::params::mongo_config}"],
+    returns   => [0, 1],
+  }
+  
   if $key_file {
     file { $key_file:
       mode => 700
