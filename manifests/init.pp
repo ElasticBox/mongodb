@@ -37,7 +37,10 @@ class mongodb(
 
   if $version != 'latest' {
     case $::operatingsystem {
-      /(Amazon|CentOS|Fedora|RedHat)/: {
+      /(Amazon)/: {
+        $mongodb_version = "${version}-1"
+      }
+      /(CentOS|Fedora|RedHat)/: {
         $mongodb_version = "${version}-mongodb_1"
       }
       /(Debian|Ubuntu)/: {
