@@ -45,6 +45,7 @@ class mongodb::config(
   
   file { "/etc/${mongodb::params::mongo_config}":
     content => template("mongodb/${mongodb::params::mongo_config}.erb"),
+    require => [File[$logpath], File[$dbpath]]
   }
   
   exec { 'mongodb-delock' :
@@ -59,7 +60,7 @@ class mongodb::config(
     command   => "pkill ${mongodb::params::mongo_service}",
     path      => "/usr/bin:/usr/sbin:/bin:/sbin",
     logoutput => true,
-    require   => File["/etc/${mongodb::params::mongo_config}"],
+    require   => Exec['mongodb-delock'],
     returns   => [0, 1],
   }
   
@@ -72,14 +73,14 @@ class mongodb::config(
       command   => "service ${mongodb::params::mongo_service} restart",
       path      => "/usr/bin:/usr/sbin:/bin:/sbin",
       logoutput => true,
-      require   => [File[$key_file], File["/etc/${mongodb::params::mongo_config}"]],
+      require   => [File[$key_file], Exec['mongodb-pkill']],
     }
   } else {
     exec { 'mongodb-restart' :
       command   => "service ${mongodb::params::mongo_service} restart",
       path      => "/usr/bin:/usr/sbin:/bin:/sbin",
       logoutput => true,
-      require   => File["/etc/${mongodb::params::mongo_config}"],
+      require   => Exec['mongodb-pkill'],
     }
   }
   
