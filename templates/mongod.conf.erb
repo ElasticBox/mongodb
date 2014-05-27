@@ -8,9 +8,6 @@ logappend=true
 # fork and run in background
 fork = true
 
-# location of pidfile
-pidfilepath = /var/run/mongodb/mongod.pid
-
 <% if @bind_ip and @bind_ip != '' %>
 bind_ip = <%= @bind_ip %>
 <% end %>
