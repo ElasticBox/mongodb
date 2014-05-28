@@ -47,28 +47,15 @@ class mongodb(
   } else {
     $mongodb_version = latest
   }
-
-  package { $mongodb::params::mongo_10gen :
-    ensure  => "${mongodb_version}",
-    require => Class['mongodb::10gen'],
-  }
   
-  package { $mongodb::params::mongo_10gen_server :
+  package { 'mongodb-org':
     ensure  => "${mongodb_version}",
     require => Class['mongodb::10gen'],
   }
 
-  exec { 'mongodb-unlock' :
-      command   => "rm /var/lib/mongodb/mongod.lock",
-      path      => "/usr/bin:/usr/sbin:/bin:/sbin",
-      logoutput => false,
-      returns   => [0, 1],
-  }
-
-  service { 'mongodb' :
-    ensure     => running,
-    name       => $mongodb::params::mongo_service,
-    enable     => true,
-    require    => Package[$mongodb::params::mongo_10gen],
+  service { 'mongod' :
+    ensure  => running,
+    enable  => true,
+    require => Package['mongodb-org'],
   }
 }
