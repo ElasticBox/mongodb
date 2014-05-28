@@ -41,18 +41,24 @@ class mongodb::config(
     mode   => 0755,
   }
   
-  $log = "${logpath}/${mongodb::params::mongo_user}.log"
+  $log = "${logpath}/mongod.log"
   
-  file { "/etc/${mongodb::params::mongo_config}":
-    content => template("mongodb/${mongodb::params::mongo_config}.erb"),
-    require => [File[$logpath], File[$dbpath]]
+  case $::operatingsystem {
+    /(Amazon|CentOS|Fedora|RedHat)/: {
+      $fork = true
+    }
+    /(Debian|Ubuntu)/: {
+      $fork = false
+    }
+    default: {
+      $fork = false
+    }
   }
   
-  $unlock = "rm /var/lib/mongodb/mongod.lock"
-  $pkill = "pkill ${mongodb::params::mongo_service}"
-  $restart = "service ${mongodb::params::mongo_service} restart"
-  $launch = "mongod -f /etc/mongod.conf"
-  $command = "${restart};if [ ! $? -eq 0 ]; then ${unlock};${pkill};${launch};fi"
+  file { "/etc/mongod.conf":
+    content => template("mongodb/mongod.conf.erb"),
+    require => [File[$logpath], File[$dbpath]]
+  }
   
   if $key_file {
     file { $key_file:
@@ -60,17 +66,17 @@ class mongodb::config(
     }
     
     exec { 'mongodb-restart' :
-      command   => $command,
+      command   => 'service mongod restart',
       path      => "/usr/bin:/usr/sbin:/bin:/sbin",
-      logoutput => false,
-      require   => [File[$key_file], File["/etc/${mongodb::params::mongo_config}"]],
+      logoutput => true,
+      require   => [File[$key_file], File["/etc/mongod.conf"]],
     }
   } else {
     exec { 'mongodb-restart' :
-      command   => $command,
+      command   => 'service mongod restart',
       path      => "/usr/bin:/usr/sbin:/bin:/sbin",
-      logoutput => false,
-      require   => File["/etc/${mongodb::params::mongo_config}"],
+      logoutput => true,
+      require   => File["/etc/mongod.conf"],
     }
   }
   
