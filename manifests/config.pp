@@ -48,21 +48,11 @@ class mongodb::config(
     require => [File[$logpath], File[$dbpath]]
   }
   
-  exec { 'mongodb-delock' :
-    command   => "rm /var/lib/mongodb/mongod.lock",
-    path      => "/usr/bin:/usr/sbin:/bin:/sbin",
-    logoutput => true,
-    require   => File["/etc/${mongodb::params::mongo_config}"],
-    returns   => [0, 1],
-  }
-
-  exec { 'mongodb-pkill' :
-    command   => "pkill ${mongodb::params::mongo_service}",
-    path      => "/usr/bin:/usr/sbin:/bin:/sbin",
-    logoutput => true,
-    require   => Exec['mongodb-delock'],
-    returns   => [0, 1],
-  }
+  $unlock = "rm /var/lib/mongodb/mongod.lock"
+  $pkill = "pkill ${mongodb::params::mongo_service}"
+  $restart = "service ${mongodb::params::mongo_service} restart"
+  $launch = "mongod -f /etc/mongod.conf"
+  $command = "${restart};if [ ! $? -eq 0 ]; then ${unlock};${pkill};${launch};fi"
   
   if $key_file {
     file { $key_file:
@@ -70,17 +60,17 @@ class mongodb::config(
     }
     
     exec { 'mongodb-restart' :
-      command   => "service ${mongodb::params::mongo_service} restart",
+      command   => $command,
       path      => "/usr/bin:/usr/sbin:/bin:/sbin",
-      logoutput => true,
-      require   => [File[$key_file], Exec['mongodb-pkill']],
+      logoutput => false,
+      require   => [File[$key_file], File["/etc/${mongodb::params::mongo_config}"]],
     }
   } else {
     exec { 'mongodb-restart' :
-      command   => "service ${mongodb::params::mongo_service} restart",
+      command   => $command,
       path      => "/usr/bin:/usr/sbin:/bin:/sbin",
-      logoutput => true,
-      require   => Exec['mongodb-pkill'],
+      logoutput => false,
+      require   => File["/etc/${mongodb::params::mongo_config}"],
     }
   }
   

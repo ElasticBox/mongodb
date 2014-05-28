@@ -37,11 +37,8 @@ class mongodb(
 
   if $version != 'latest' {
     case $::operatingsystem {
-      /(Amazon)/: {
+      /(Amazon|CentOS|Fedora|RedHat)/: {
         $mongodb_version = "${version}-1"
-      }
-      /(CentOS|Fedora|RedHat)/: {
-        $mongodb_version = "${version}-mongodb_1"
       }
       /(Debian|Ubuntu)/: {
         $mongodb_version = "${version}"
@@ -56,11 +53,16 @@ class mongodb(
     require => Class['mongodb::10gen'],
   }
   
-  if $mongodb::params::mongo_10gen_server {
-    package { $mongodb::params::mongo_10gen_server :
-      ensure  => "${mongodb_version}",
-      require => Class['mongodb::10gen'],
-    }
+  package { $mongodb::params::mongo_10gen_server :
+    ensure  => "${mongodb_version}",
+    require => Class['mongodb::10gen'],
+  }
+
+  exec { 'mongodb-unlock' :
+      command   => "rm /var/lib/mongodb/mongod.lock",
+      path      => "/usr/bin:/usr/sbin:/bin:/sbin",
+      logoutput => false,
+      returns   => [0, 1],
   }
 
   service { 'mongodb' :
