@@ -17,7 +17,7 @@ define mongodb::admin(
     timeout   => 300,
   }
   
-  $noauth = "mongo admin --eval \"db.createUser({user: \\\"${name}\\\",pwd: \\\"${password}\\\",roles:[{role: \\\"root\\\",db: \\\"admin\\\"}]})\""
+  $noauth = "mongo admin --eval \"db.createUser({user: \\\"${name}\\\",pwd: \\\"${password}\\\",roles:[{role: \\\"root\\\",db: \\\"admin\\\"},{role: \\\"restore\\\",db: \\\"admin\\\"}]})\""
   $auth = "if [ $? -eq 252 ]; then mongo -u ${admin_username} -p ${admin_password} admin --eval \"db.createUser({user: \\\"${name}\\\",pwd: \\\"${password}\\\",roles:[{role: \\\"userAdminAnyDatabase\\\",db: \\\"admin\\\"}]})\";fi"
   $created = "if [ $? -eq 252 ]; then echo 'User already created.';fi"
   $command = "${noauth};${auth};${created}"
