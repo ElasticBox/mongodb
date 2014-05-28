@@ -45,6 +45,7 @@ class mongodb::config(
   
   file { "/etc/${mongodb::params::mongo_config}":
     content => template("mongodb/${mongodb::params::mongo_config}.erb"),
+    require => [File[$logpath], File[$dbpath]]
   }
   
   $unlock = "rm /var/lib/mongodb/mongod.lock"
