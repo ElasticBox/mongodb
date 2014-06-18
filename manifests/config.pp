@@ -80,12 +80,21 @@ class mongodb::config(
     }
   }
   
+  $wait = "mongo admin --eval \"db.users.find()\"; while [ $? -ne 0 ];do sleep 5;mongo admin --eval \"db.users.find()\";done"
+  exec { 'wait_connection': 
+    command   => $wait,
+    path      => "/usr/bin:/usr/sbin:/bin:/sbin",
+    logoutput => true,
+    timeout   => 300,
+    require   => Exec['mongodb-restart'],
+  }
+  
   if $username and $username != '' and $replica_set == undef {
     mongodb::admin { $username:
       password       => $password,
       admin_username => $username,
       admin_password => $password,
-      require        => Exec['mongodb-restart']
+      require        => Exec['wait_connection']
     }
   }
   
