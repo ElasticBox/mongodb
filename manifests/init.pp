@@ -39,16 +39,19 @@ class mongodb(
     case $::operatingsystem {
       /(Amazon|CentOS|Fedora|RedHat)/: {
         $mongodb_version = "${version}-1"
+        $mongodb_package = ['mongodb-org', 'mongodb-org-server', 'mongodb-org-shell', 'mongodb-org-mongos', 'mongodb-org-tools']
       }
       /(Debian|Ubuntu)/: {
         $mongodb_version = "${version}"
+        $mongodb_package = ['mongodb-org', 'mongodb-org-server', 'mongodb-org-shell', 'mongodb-org-mongos', 'mongodb-org-tools']
       }
     }  
   } else {
     $mongodb_version = latest
+    $mongodb_package = 'mongodb-org'
   }
   
-  package { 'mongodb-org':
+  package { $mongodb_package:
     ensure  => "${mongodb_version}",
     require => Class['mongodb::10gen'],
   }
