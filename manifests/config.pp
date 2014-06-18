@@ -80,7 +80,7 @@ class mongodb::config(
     }
   }
   
-  if $username and $username != '' and $replica_set {
+  if $username and $username != '' and $replica_set == undef {
     mongodb::admin { $username:
       password       => $password,
       admin_username => $username,
